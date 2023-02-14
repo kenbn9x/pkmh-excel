@@ -117,19 +117,35 @@ export default function Home() {
       rs[e] = {};
       for (let i = startRow ?? 1 + 1; i < fileData.length; i++) {
         const key = columnsKey.reduce((x, item, idx) => {
+          const data = fileData[i][item] || "";
           x += `k${idx}${
-            typeof fileData[i][item] == "string"
-              ? fileData[i][item].toLowerCase()
-              : fileData[i][item]
+            typeof data == "string" ? data.trim().toLowerCase() : data
           }`;
           return x;
         }, "");
+
         const xItem = {
           ...columnsKey.reduce((x, item) => {
-            return { ...x, [item]: fileData[i][item] };
+            return {
+              ...x,
+              [item]:
+                typeof fileData[i][item] == "string"
+                  ? fileData[i][item].trim().toLowerCase()
+                  : typeof fileData[i][item] == "number"
+                  ? Math.round(fileData[i][item] * 10) / 10
+                  : fileData[i][item],
+            };
           }, {}),
           ...columnsCompare.reduce((x, item, idx) => {
-            return { ...x, [item]: fileData[i][item] };
+            return {
+              ...x,
+              [item]:
+                typeof fileData[i][item] == "string"
+                  ? fileData[i][item].trim().toLowerCase()
+                  : typeof fileData[i][item] == "number"
+                  ? Math.round(fileData[i][item] * 10) / 10
+                  : fileData[i][item],
+            };
           }, {}),
         };
         rs[e][key] = xItem;
@@ -138,6 +154,7 @@ export default function Home() {
 
     const data1 = rs[0];
     const data2 = rs[1];
+    // console.log({ data1, data2 });
     let dataCompare = [] as any[];
     const columnsKey1 = fileUpload[0].columnsKey;
     const columnsKey2 = fileUpload[1].columnsKey;
