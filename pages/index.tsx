@@ -42,7 +42,6 @@ export default function Home() {
       const wb = read(f); // parse the array buffer
       const ws = wb.Sheets[wb.SheetNames[0]]; // get the first worksheet
       const dataJson = utils.sheet_to_json(ws) as any; // generate objects
-
       setFileUpload((state) => {
         return [
           ...state.map((x, idxState) => {
@@ -53,7 +52,8 @@ export default function Home() {
               startRow: 1,
               columnsKey: [],
               columnsCompare: [],
-              optionColumns: [...Object.keys(dataJson[x.startRow])],
+              // optionColumns: [...Object.keys(dataJson[x.startRow])], cho compare
+              optionColumns: [...Object.keys(dataJson[0])], // cho map data
             };
           }),
         ];
@@ -225,6 +225,38 @@ export default function Home() {
     writeFileXLSX(wb, "Dữ liệu so sánh.xlsx");
   }, [fileUpload]);
 
+
+  const handleExportMapData = useCallback((): void => {
+    let rs = [] as any[];
+
+    const { fileData, startRow, columnsKey, columnsCompare } = fileUpload[0];
+    const fileData2 = fileUpload[1].fileData;
+    const columnsKey2 = fileUpload[1].columnsKey;
+    const columnsCompare2 = fileUpload[1].columnsCompare;
+
+    for (let i = 0; i < fileData.length; i++) {
+      console.log(i,fileData[i].code);
+      const findSource = fileData2.find(x => `k${x[columnsKey2[0]]}` == `k${fileData[i][columnsKey[0]]}`);
+      if (findSource) {
+        for(let c = 0; c < columnsCompare.length; c++) {
+          // console.log(`k${fileData[i].code} == ${findSource.code}` + ' || ' + columnsCompare[c] + ' || ' +columnsCompare2[c] + ' => ' + findSource[columnsCompare2[c]]);
+          fileData[i][columnsCompare[c]] = findSource[columnsCompare2[c]];
+        }
+      } else {
+        for(let c = 0; c < columnsCompare.length; c++) {
+          // console.log(`k${fileData[i].code} == ${findSource.code}` + ' || ' + columnsCompare[c] + ' || ' +columnsCompare2[c] + ' => ' + findSource[columnsCompare2[c]]);
+          fileData[i][columnsCompare[c]] = '';
+        }
+      }
+    }
+
+    
+    const ws = utils.json_to_sheet(fileData);
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, "Data");
+    writeFileXLSX(wb, "Dữ liệu map.xlsx");
+  }, [fileUpload]);
+
   return (
     <Paper elevation={0}>
       <Box my={3} display="flex" justifyContent="center" alignItems="center">
@@ -251,7 +283,11 @@ export default function Home() {
       >
         <Grid item>
           <Button variant="contained" component="label" onClick={handleExport}>
-            Export file
+            Export File Compare
+          </Button>
+
+          <Button variant="contained" component="label" onClick={handleExportMapData}>
+            Export File Map Data
           </Button>
         </Grid>
       </Grid>
